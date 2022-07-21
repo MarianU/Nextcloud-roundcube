@@ -76,8 +76,8 @@ class SettingsController extends Controller
         // Validate and do a first fix of some values.
         if (!is_string($defaultRCPath) || $defaultRCPath === '')
             return self::error_response($l->t("Default RC installation path can't be an empty string."));
-        else if (preg_match('/^([a-zA-Z]+:)?\/\//', $defaultRCPath) === 1)
-            return self::error_response($l->t("Default path must be a url relative to this server."));
+//        else if (preg_match('/^([a-zA-Z]+:)?\/\//', $defaultRCPath) === 1)
+//            return self::error_response($l->t("Default path must be a url relative to this server."));
 
         $defaultRCPath = ltrim(trim($defaultRCPath));
 
