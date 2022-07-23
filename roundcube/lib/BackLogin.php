@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ownCloud - RoundCube mail plugin
  *
@@ -18,6 +19,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 namespace OCA\RoundCube;
 
 use OCA\RoundCube\Auth\AuthHelper;
@@ -53,9 +55,13 @@ class BackLogin
      * @param string $password The password.
      * @return array/bool ['sessid', 'sessauth'] on success, false on error.
      */
-    public function __construct(string $email, string $password, IConfig $config,
-                                InternalAddress $rcIA, LoggerInterface $logger)
-    {
+    public function __construct(
+        string $email,
+        string $password,
+        IConfig $config,
+        InternalAddress $rcIA,
+        LoggerInterface $logger
+    ) {
         $this->email           = $email;
         $this->password        = $password;
         $this->config          = $config;
@@ -70,7 +76,13 @@ class BackLogin
      * On success, RoundCube is ready to show up.
      * @return bool True on login, false otherwise.
      */
-    public function login(): int {
+    public function login(): int
+    {
+        // do not login using pass, we have no password for oauth users
+        // we could try to send the auth token from oauth provider
+        // we also need to setup webdav connection on roundcube for the user
+        return AuthHelper::SUCCESS;
+
         // End previous session:
         // Delete cookies sessauth & sessid by expiring them.
         setcookie(AuthHelper::COOKIE_RC_SESSID, "-del-", 1, "/", "", true, true);
@@ -108,14 +120,18 @@ class BackLogin
 
         // Set cookies sessauth and sessid.
         $cookiesLogin = self::parseCookies($loginAnswerObj['headers']['set-cookie']);
-        if (isset($cookiesLogin[AuthHelper::COOKIE_RC_SESSID]) &&
-            $cookiesLogin[AuthHelper::COOKIE_RC_SESSID] !== "-del-") {
+        if (
+            isset($cookiesLogin[AuthHelper::COOKIE_RC_SESSID]) &&
+            $cookiesLogin[AuthHelper::COOKIE_RC_SESSID] !== "-del-"
+        ) {
             $this->rcSessionID = $cookiesLogin[AuthHelper::COOKIE_RC_SESSID];
             setcookie(AuthHelper::COOKIE_RC_SESSID, $this->rcSessionID, 0, "/", "", true, true);
         }
 
-        if (isset($cookiesLogin[AuthHelper::COOKIE_RC_SESSAUTH]) &&
-            $cookiesLogin[AuthHelper::COOKIE_RC_SESSAUTH] !== "-del-") {
+        if (
+            isset($cookiesLogin[AuthHelper::COOKIE_RC_SESSAUTH]) &&
+            $cookiesLogin[AuthHelper::COOKIE_RC_SESSAUTH] !== "-del-"
+        ) {
             // We received a sessauth => logged in!
             $this->rcSessionAuth = $cookiesLogin[AuthHelper::COOKIE_RC_SESSAUTH];
             setcookie(AuthHelper::COOKIE_RC_SESSAUTH, $this->rcSessionAuth, 0, "/", "", true, true);
@@ -136,7 +152,8 @@ class BackLogin
      * @param string $text The text where to look for input fields.
      * @return array [name => [key, value]] Input fields indexed by name.
      */
-    private static function parseInputs($text) {
+    private static function parseInputs($text)
+    {
         $inputs = array();
         if (preg_match_all('/<input ([^>]*)>/i', $text, $inputMatches)) {
             foreach ($inputMatches[1] as $input) {
@@ -167,7 +184,8 @@ class BackLogin
      * @param string $data   Data to send.
      * @return array ['headers' => [headers], 'html' => html]
      */
-    private function sendRequest($rcQuery, $method, $data = null) {
+    private function sendRequest($rcQuery, $method, $data = null)
+    {
         $response = false;
         $rcQuery = $this->rcServer . "$rcQuery";
         Utils::log_debug($this->logger, "URL: '$rcQuery'.");
@@ -246,7 +264,8 @@ class BackLogin
      * @param int    $headerSize
      * @return array ['headers' => [headers], 'html' => html]
      */
-    private static function splitResponse($response, $headerSize) {
+    private static function splitResponse($response, $headerSize)
+    {
         $headers = $html = "";
         if ($headerSize) {
             $headers = substr($response, 0, $headerSize);
@@ -281,7 +300,8 @@ class BackLogin
      *
      * @return array ['name0' => [header0:0, header0:1], 'name1' => [header1:0], ...]
      */
-    private static function parseResponseHeaders($rawHeaders) {
+    private static function parseResponseHeaders($rawHeaders)
+    {
         $responseHeaders = array();
         $headerLines = explode("\r\n", trim($rawHeaders));
         foreach ($headerLines as $header) {
@@ -302,7 +322,8 @@ class BackLogin
      * @param array $cookieHeaders ['name=value; text', ...]
      * @return array ['name' => 'value', ...]
      */
-    private static function parseCookies($cookieHeaders) {
+    private static function parseCookies($cookieHeaders)
+    {
         $cookies = array();
         if (is_array($cookieHeaders))
             foreach ($cookieHeaders as $ch)
